@@ -1,0 +1,140 @@
+# ============================================================
+# SIMPLE AI CHATBOT PROJECT
+# Runs directly in Google Colab
+# ============================================================
+
+# Install required library
+!pip -q install scikit-learn
+
+# Import libraries
+import re
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+
+# ------------------------------------------------------------
+# 1. AI KNOWLEDGE BASE
+# ------------------------------------------------------------
+
+questions = [
+    "hello",
+    "hi",
+    "hey",
+    "good morning",
+    "good evening",
+    "how are you",
+    "what is your name",
+    "who are you",
+    "what can you do",
+    "what is artificial intelligence",
+    "what is ai",
+    "what is machine learning",
+    "what is python",
+    "what is google colab",
+    "what is a database",
+    "what is programming",
+    "what is a computer",
+    "thank you",
+    "thanks",
+    "bye",
+    "goodbye"
+]
+
+answers = [
+    "Hello! How can I help you?",
+    "Hi! Nice to meet you.",
+    "Hey! What can I do for you?",
+    "Good morning! How can I help you?",
+    "Good evening! How can I help you?",
+    "I'm doing great! Thanks for asking.",
+    "My name is Simple AI Chatbot.",
+    "I am a simple AI chatbot created using Python and Natural Language Processing.",
+    "I can answer basic questions and have a simple conversation with you.",
+    "Artificial Intelligence is a technology that enables computers to perform tasks that normally require human intelligence.",
+    "AI stands for Artificial Intelligence.",
+    "Machine Learning is a branch of AI where computers learn patterns from data and make predictions or decisions.",
+    "Python is a popular programming language used for AI, machine learning, web development, automation, and many other applications.",
+    "Google Colab is an online platform that allows users to write and run Python code in a browser.",
+    "A database is an organized collection of data that can be stored, managed, and retrieved.",
+    "Programming is the process of writing instructions that tell a computer what to do.",
+    "A computer is an electronic device that processes data and performs calculations according to instructions.",
+    "You're welcome!",
+    "You're welcome!",
+    "Goodbye! Have a great day!",
+    "Goodbye! See you again!"
+]
+
+# ------------------------------------------------------------
+# 2. TEXT PREPROCESSING
+# ------------------------------------------------------------
+
+def clean_text(text):
+    text = text.lower()
+    text = re.sub(r'[^a-zA-Z0-9\s]', '', text)
+    return text
+
+clean_questions = [clean_text(q) for q in questions]
+
+# ------------------------------------------------------------
+# 3. CREATE TF-IDF MODEL
+# ------------------------------------------------------------
+
+vectorizer = TfidfVectorizer()
+
+question_vectors = vectorizer.fit_transform(clean_questions)
+
+# ------------------------------------------------------------
+# 4. CHATBOT FUNCTION
+# ------------------------------------------------------------
+
+def chatbot(user_input):
+
+    user_input = clean_text(user_input)
+
+    # Convert user input into TF-IDF vector
+    user_vector = vectorizer.transform([user_input])
+
+    # Calculate similarity
+    similarities = cosine_similarity(
+        user_vector,
+        question_vectors
+    )
+
+    # Find best matching question
+    best_match = similarities.argmax()
+
+    # Get similarity score
+    score = similarities[0][best_match]
+
+    # If similarity is too low, don't guess
+    if score < 0.25:
+        return (
+            "Sorry, I don't understand that question. "
+            "Please ask me something about AI, Python, "
+            "programming, computers, or databases."
+        )
+
+    return answers[best_match]
+
+
+# ------------------------------------------------------------
+# 5. START CHATBOT
+# ------------------------------------------------------------
+
+print("=" * 60)
+print("        🤖 SIMPLE AI CHATBOT")
+print("=" * 60)
+print("Type your question below.")
+print("Type 'exit' to stop the chatbot.")
+print("=" * 60)
+
+while True:
+
+    user_input = input("\nYou: ")
+
+    if user_input.lower().strip() == "exit":
+        print("AI: Goodbye! 👋")
+        break
+
+    response = chatbot(user_input)
+
+    print("AI:", response)
